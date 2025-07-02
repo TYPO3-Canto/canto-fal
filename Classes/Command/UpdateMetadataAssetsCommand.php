@@ -17,27 +17,32 @@ use Symfony\Component\Console\Output\OutputInterface;
 use TYPO3\CMS\Core\Cache\Frontend\FrontendInterface;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\FileRepository;
-use TYPO3\CMS\Core\Resource\ProcessedFileRepository;
-use TYPO3\CMS\Core\Resource\StorageRepository;
+use TYPO3\CMS\Core\Resource\Index\FileIndexRepository;
+use TYPO3\CMS\Core\Resource\Index\Indexer;
+use TYPO3\CMS\Core\Resource\Service\ExtractorService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3Canto\CantoFal\Resource\Driver\CantoDriver;
-use TYPO3Canto\CantoFal\Resource\Metadata\Extractor;
-use TYPO3Canto\CantoFal\Utility\CantoUtility;
 
 final class UpdateMetadataAssetsCommand extends Command
 {
-    private Extractor $metadataExtractor;
-    private StorageRepository $storageRepository;
-    protected FrontendInterface $cantoFileCache;
-    public function __construct(Extractor $metadataExtractor, StorageRepository $storageRepository)
-    {
-        $this->metadataExtractor = $metadataExtractor;
-        $this->storageRepository = $storageRepository;
-        parent::__construct();
-    }
+    private ExtractorService $extractorService;
 
-    public function injectCantoFileCache(FrontendInterface $cantoFileCache): void
-    {
+    private FileRepository $fileRepository;
+
+    private FileIndexRepository $fileIndexRepository;
+
+    private FrontendInterface $cantoFileCache;
+
+    public function __construct(
+        ExtractorService $extractorService,
+        FileRepository $fileRepository,
+        FileIndexRepository $fileIndexRepository,
+        FrontendInterface $cantoFileCache
+    ) {
+        parent::__construct();
+        $this->extractorService = $extractorService;
+        $this->fileRepository = $fileRepository;
+        $this->fileIndexRepository = $fileIndexRepository;
         $this->cantoFileCache = $cantoFileCache;
     }
 
@@ -54,39 +59,43 @@ EOF
 
     public function execute(InputInterface $input, OutputInterface $output): int
     {
-        $fileRepository = GeneralUtility::makeInstance(FileRepository::class);
-        assert($fileRepository instanceof FileRepository);
-        $files = $fileRepository->findAll();
         $counter = 0;
+        $indexerArray = [];
+
+        $files = $this->fileRepository->findAll();
+        $this->cantoFileCache->flush();
         foreach ($files as $file) {
             assert($file instanceof File);
-            $output->writeln('Working on File: ' . $file->getIdentifier() . ' - ' . $file->getName());
             if ($file->getStorage()->getDriverType() !== CantoDriver::DRIVER_NAME) {
                 continue;
             }
+
+            $output->writeln('Working on File: ' . $file->getIdentifier() . ' - ' . $file->getName());
+
             try {
-                //First delete cache
-                $scheme = CantoUtility::getSchemeFromCombinedIdentifier($file->getIdentifier());
-                $identifier = CantoUtility::getIdFromCombinedIdentifier($file->getIdentifier());
-                $combinedIdentifier = CantoUtility::buildCombinedIdentifier($scheme, $identifier);
-                $cacheIdentifier = sha1($combinedIdentifier);
-                if ($this->cantoFileCache->has($cacheIdentifier)) {
-                    //Clear old cache
-                    $this->cantoFileCache->remove($cacheIdentifier);
+                $storage = $file->getStorage();
+                $storageUid = $storage->getUid();
+                $currentEvaluatePermissions = $storage->getEvaluatePermissions();
+                $storage->setEvaluatePermissions(false);
+
+                $indexer = $indexerArray[$storageUid] = $indexerArray[$storageUid] ?? GeneralUtility::makeInstance(Indexer::class, $storage);
+
+                $file = $indexer->updateIndexEntry($file);
+
+                if (!$storage->autoExtractMetadataEnabled()) {
+                    $file->getMetaData()->add($this->extractorService->extractMetaData($file))->save();
                 }
 
-                $metaData = $this->metadataExtractor->extractMetaData($file);
-
-                if ($metaData) {
-                    $file->getMetaData()->add($metaData)->save();
-                    $file->getForLocalProcessing(true);
-                    $processedFileRepository = GeneralUtility::makeInstance(ProcessedFileRepository::class);
-                    foreach ($processedFileRepository->findAllByOriginalFile($file) as $processedFile) {
-                        $processedFile->delete(true);
-                    }
-                }
+                $storage->setEvaluatePermissions($currentEvaluatePermissions);
             } catch (\Exception $e) {
-                $output->writeln('File ' . $file->getIdentifier() . ' failed: ' . $e->getMessage());
+                $this->fileIndexRepository->markFileAsMissing($file->getUid());
+                $output->writeln(sprintf(
+                    '     Error on File: %s - %s -> %s (%s)',
+                    $file->getIdentifier(),
+                    $file->getName(),
+                    $e->getMessage(),
+                    $e->getCode()
+                ));
                 continue;
             }
             if (++$counter > 1000) {
@@ -95,6 +104,7 @@ EOF
                 sleep(60);
             }
         }
+
         return self::SUCCESS;
     }
 }

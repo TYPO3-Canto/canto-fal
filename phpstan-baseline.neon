@@ -71,11 +71,6 @@ parameters:
 			path: Classes/Command/UpdateImageAssetsUsedInFrontendCommand.php
 
 		-
-			message: "#^Property TYPO3Canto\\\\CantoFal\\\\Command\\\\UpdateMetadataAssetsCommand\\:\\:\\$storageRepository is never read, only written\\.$#"
-			count: 1
-			path: Classes/Command/UpdateMetadataAssetsCommand.php
-
-		-
 			message: "#^Method TYPO3Canto\\\\CantoFal\\\\Command\\\\WarmupCantoCache\\:\\:getStorages\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: Classes/Command/WarmupCantoCache.php

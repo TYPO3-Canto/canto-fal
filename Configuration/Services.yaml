@@ -65,8 +65,11 @@ services:
         command: 'canto:warmupcache'
 
   TYPO3Canto\CantoFal\Command\UpdateMetadataAssetsCommand:
-    calls:
-      - injectCantoFileCache: [ '@cache.canto_file' ]
+    arguments:
+      - '@TYPO3\CMS\Core\Resource\Service\ExtractorService'
+      - '@TYPO3\CMS\Core\Resource\FileRepository'
+      - '@TYPO3\CMS\Core\Resource\Index\FileIndexRepository'
+      - '@cache.canto_file'
     tags:
       - name: 'console.command'
         command: 'canto:updatemetadataassets'
