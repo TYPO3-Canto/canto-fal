@@ -1,3 +1,10 @@
+2025-07-02         [RELEASE] Release of canto-fal 1.1.1 (Nicole Hummel)
+2025-06-23 729f639 [BUGFIX] Corrected MDC URL generation for image and document schemes in CantoDriver (Jens Jacobsen)
+2025-07-02 df30880 [BUGFIX] Use TYPO3 core API for FAL meta data update (Nicole Hummel)
+2025-07-02 b7eb0e1 [BUGFIX] Allow correct calculation for preview image dimensions (Nicole Hummel)
+2025-06-27 3baee73 [BUGFIX] Fix passing string instead of int in the initialize method (Jens Jacobsen)
+2025-06-23 1ea2beb [TASK] Use existing constants instead of strings (Jens Jacobsen)
+
 2025-06-05         [RELEASE] Release of canto-fal 1.1.0 (Nicole Hummel)
 2025-06-05 bf76d75 [BUGFIX] Limit asset picker to valid schemes by default (Nicole Hummel)
 2025-06-03 dc72996 [BUGFIX] Ensure visible asset picker button for file elements (Nicole Hummel)
