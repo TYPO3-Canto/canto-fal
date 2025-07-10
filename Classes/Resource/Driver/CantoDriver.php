@@ -352,12 +352,32 @@ class CantoDriver extends AbstractDriver implements StreamableDriverInterface
             $scheme,
             $explicitFileIdentifier
         );
-        if ($result == null) {
+        if ($result !== null) {
+            foreach ($result['relatedAlbums'] ?? [] as $album) {
+                $folders[] = CantoUtility::buildCombinedIdentifier($album['scheme'], $album['id']);
+            }
+            $data = [
+                'size' => $result['default']['Size'],
+                'atime' => time(),
+                'mtime' => CantoUtility::buildTimestampFromCantoDate($result['default']['Date modified']),
+                'ctime' => CantoUtility::buildTimestampFromCantoDate($result['default']['Date uploaded']),
+                'mimetype' => $result['default']['Content Type'] ?? '',
+                'name' => $result['name'],
+                'extension' => PathUtility::pathinfo($result['name'], PATHINFO_EXTENSION),
+                'identifier' => $fileIdentifier,
+                'identifier_hash' => $this->hashIdentifier($fileIdentifier),
+                'storage' => $this->storageUid,
+                'folder_hash' => '',
+                'folder_identifiers' => $folders,
+            ];
+        } else {
+            // Use fallbackimage.jpg as fallback information
+            // TODO: throw an exception and handle within code context
             $data = [
                 'size' => 1000,
                 'atime' => time(),
                 'mtime' => 0,
-                'ctime' =>  0,
+                'ctime' => 0,
                 'mimetype' => '',
                 'name' => 'fallbackimage.jpg',
                 'extension' => 'jpg',
@@ -365,28 +385,9 @@ class CantoDriver extends AbstractDriver implements StreamableDriverInterface
                 'identifier_hash' => $this->hashIdentifier($fileIdentifier),
                 'storage' => $this->storageUid,
                 'folder_hash' => '',
-                'folder_identifiers' => '',
+                'folder_identifiers' => [],
             ];
-
-            return $data;
         }
-        foreach ($result['relatedAlbums'] ?? [] as $album) {
-            $folders[] = CantoUtility::buildCombinedIdentifier($album['scheme'], $album['id']);
-        }
-        $data = [
-            'size' => $result['default']['Size'],
-            'atime' => time(),
-            'mtime' => CantoUtility::buildTimestampFromCantoDate($result['default']['Date modified']),
-            'ctime' => CantoUtility::buildTimestampFromCantoDate($result['default']['Date uploaded']),
-            'mimetype' => $result['default']['Content Type'] ?? '',
-            'name' => $result['name'],
-            'extension' => PathUtility::pathinfo($result['name'], PATHINFO_EXTENSION),
-            'identifier' => $fileIdentifier,
-            'identifier_hash' => $this->hashIdentifier($fileIdentifier),
-            'storage' => $this->storageUid,
-            'folder_hash' => '',
-            'folder_identifiers' => $folders,
-        ];
         if (!$propertiesToExtract) {
             return $data;
         }
