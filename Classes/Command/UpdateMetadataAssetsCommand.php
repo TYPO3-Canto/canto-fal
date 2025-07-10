@@ -73,6 +73,10 @@ EOF
             $output->writeln('Working on File: ' . $file->getIdentifier() . ' - ' . $file->getName());
 
             try {
+                if (!$file->exists()) {
+                    throw new \InvalidArgumentException('File ' . $file->getIdentifier() . ' does not exist.', 1752151775);
+                }
+
                 $storage = $file->getStorage();
                 $storageUid = $storage->getUid();
                 $currentEvaluatePermissions = $storage->getEvaluatePermissions();
