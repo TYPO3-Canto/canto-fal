@@ -31,6 +31,8 @@ final class UpdateImageAssetsUsedInFrontendCommand extends Command
     private Extractor $metadataExtractor;
     private StorageRepository $storageRepository;
     protected FrontendInterface $cantoFileCache;
+    private int $apiRateLimit = 500;
+
     public function __construct(Extractor $metadataExtractor, StorageRepository $storageRepository)
     {
         $this->metadataExtractor = $metadataExtractor;
@@ -63,6 +65,7 @@ EOF
 
         $files = $fileRepository->findAll();
         $counter = 0;
+        $starttime = time();
 
         foreach ($files as $file) {
             assert($file instanceof File);
@@ -106,10 +109,15 @@ EOF
                 $output->writeln('File ' . $file->getIdentifier() . ' failed: ' . $e->getMessage());
                 continue;
             }
-            if (++$counter > 1000) {
-                $counter = 0;
-                // to circumvent API limits we need to pause for 60s after processing a thousand requests
-                sleep(60);
+            if (++$counter > $this->apiRateLimit) {
+                $counter = time() - $starttime;
+                if ($counter < 60) {
+                    // to circumvent API limits we need to pause for 60s after processing maximum requests
+                    $output->writeln('Waiting for API');
+                    sleep(61 - $counter);
+                    $counter = 0;
+                }
+                $starttime = time();
             }
         }
         //Clear frontend cache

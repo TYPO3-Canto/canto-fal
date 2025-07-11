@@ -33,6 +33,8 @@ final class UpdateMetadataAssetsCommand extends Command
 
     private FrontendInterface $cantoFileCache;
 
+    private int $apiRateLimit = 500;
+
     public function __construct(
         ExtractorService $extractorService,
         FileRepository $fileRepository,
@@ -61,6 +63,7 @@ EOF
     {
         $counter = 0;
         $indexerArray = [];
+        $starttime = time();
 
         $files = $this->fileRepository->findAll();
         $this->cantoFileCache->flush();
@@ -102,10 +105,15 @@ EOF
                 ));
                 continue;
             }
-            if (++$counter > 1000) {
-                $counter = 0;
-                // to circumvent API limits we need to pause for 60s after processing a thousand requests
-                sleep(60);
+            if (++$counter > $this->apiRateLimit) {
+                $counter = time() - $starttime;
+                if ($counter < 60) {
+                    // to circumvent API limits we need to pause for 60s after processing maximum requests
+                    $output->writeln('Waiting for API');
+                    sleep(61 - $counter);
+                    $counter = 0;
+                }
+                $starttime = time();
             }
         }
 
