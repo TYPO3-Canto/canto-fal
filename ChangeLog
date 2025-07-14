@@ -1,3 +1,9 @@
+2025-07-14         [RELEASE] Release of canto-fal 1.1.2 (Nicole Hummel)
+2025-07-14 ccddd3e [TASK] Add community part to README (Nicole Hummel)
+2025-07-11 d90a859 [FEATURE] Reduce sleep time for API rate limits in commands (Nicole Hummel)
+2025-07-11 94df4f6 [BUGFIX] Mark missing files in UpdateMetadataAssetsCommand (Nicole Hummel)
+2025-07-10 b9dee7d [BUGFIX] Ensure correct properties for missing files (Nicole Hummel)
+
 2025-07-02         [RELEASE] Release of canto-fal 1.1.1 (Nicole Hummel)
 2025-06-23 729f639 [BUGFIX] Corrected MDC URL generation for image and document schemes in CantoDriver (Jens Jacobsen)
 2025-07-02 df30880 [BUGFIX] Use TYPO3 core API for FAL meta data update (Nicole Hummel)
