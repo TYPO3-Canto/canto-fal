@@ -16,3 +16,7 @@ in the site configuration.
 In addition, the asset picker must be enabled for editors
 by setting `permissions.file.default.cantoAssetPicker = 1` in user TSconfig
 or `permissions.file.storage.[storageUID].cantoAssetPicker = 1`.
+
+## Community
+
+- Thanks to [Wilhelm Böllhoff GmbH & Co. KG](https://www.boellhoff.com) that sponsored fixing several bugs of this extension
