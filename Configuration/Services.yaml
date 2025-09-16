@@ -97,6 +97,11 @@ services:
         identifier: addDomainsToContentSecurityPolicyEventListener
         event: TYPO3\CMS\Core\Security\ContentSecurityPolicy\Event\PolicyMutatedEvent
 
+  TYPO3Canto\CantoFal\Resource\EventListener\AddFileReferenceHeaderControlEventListener:
+    tags:
+      - name: event.listener
+        identifier: addFileReferenceHeaderControlEventListener
+
   TYPO3Canto\CantoFal\Resource\EventListener\HandleMultipleFolders:
     tags:
       - name: event.listener
@@ -177,6 +182,10 @@ services:
         method: 'afterFileMetaDataUpdated'
         event: TYPO3\CMS\Core\Resource\Event\AfterFileMetaDataUpdatedEvent
 
+  TYPO3Canto\CantoFal\Resource\EventListener\ReloadMetadataInFormEngineEventListener:
+    tags:
+      - name: event.listener
+        identifier: 'reloadMetadataInFormEngineEventListener'
 
   cache.canto_folder:
     class: TYPO3\CMS\Core\Cache\Frontend\FrontendInterface
