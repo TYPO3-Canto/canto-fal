@@ -12,6 +12,8 @@ declare(strict_types=1);
 namespace TYPO3Canto\CantoFal\Resource\EventListener;
 
 use TYPO3\CMS\Backend\Controller\Event\AfterFormEnginePageInitializedEvent;
+use TYPO3\CMS\Core\Cache\CacheManager;
+use TYPO3\CMS\Core\Cache\Frontend\FrontendInterface;
 use TYPO3\CMS\Core\Resource\FileInterface;
 use TYPO3\CMS\Core\Resource\Index\Indexer;
 use TYPO3\CMS\Core\Resource\ProcessedFileRepository;
@@ -21,6 +23,8 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 final class ReloadMetadataInFormEngineEventListener
 {
+    protected FrontendInterface $cantoFileCache;
+
     protected ExtractorService $extractorService;
 
     protected ProcessedFileRepository $processedFileRepository;
@@ -28,10 +32,12 @@ final class ReloadMetadataInFormEngineEventListener
     protected ResourceFactory $resourceFactory;
 
     public function __construct(
+        CacheManager $cacheManager,
         ExtractorService $extractorService,
         ProcessedFileRepository $processedFileRepository,
         ResourceFactory $resourceFactory
     ) {
+        $this->cantoFileCache = $cacheManager->getCache('canto_fal_file');
         $this->extractorService = $extractorService;
         $this->processedFileRepository = $processedFileRepository;
         $this->resourceFactory = $resourceFactory;
@@ -49,6 +55,9 @@ final class ReloadMetadataInFormEngineEventListener
         if (!$file instanceof FileInterface) {
             return;
         }
+
+        $cacheIdentifier = sha1($file->getIdentifier());
+        $this->cantoFileCache->remove($cacheIdentifier);
 
         $storage = $file->getStorage();
         $currentEvaluatePermissions = $storage->getEvaluatePermissions();
