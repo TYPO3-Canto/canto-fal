@@ -1,3 +1,7 @@
+2025-10-28         [RELEASE] Release of canto-fal 1.2.0 (Nicole Hummel)
+2025-10-26 dbc7e47 [BUGFIX] Clear file cache before file update (Nicole Hummel)
+2025-09-17 b6104b2 [FEATURE] Add reload button for single used assets (Nicole Hummel)
+
 2025-07-14         [RELEASE] Release of canto-fal 1.1.2 (Nicole Hummel)
 2025-07-14 ccddd3e [TASK] Add community part to README (Nicole Hummel)
 2025-07-11 d90a859 [FEATURE] Reduce sleep time for API rate limits in commands (Nicole Hummel)
